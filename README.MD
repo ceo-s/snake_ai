@@ -9,4 +9,4 @@
 
 ## Currently working models
 
-1. Q-learning model with binary vector input (_[q_snake_keras.ipynb]()_, _[q_snake_keras_train.py]()_).
+1. Q-learning model with binary vector input _[Notebook](https://github.com/ceo-s/snake_ai/blob/main/q_snake_keras.ipynb)_, _[train.py file](https://github.com/ceo-s/snake_ai/blob/main/q_snake_keras_train.py)_.
