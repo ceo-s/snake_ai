@@ -11,11 +11,11 @@
    Попробовал генетику и классичекую DQN модель.
 
 5. Графическое подтверждение (графики обучения…)
-   ![plots]()
+   ![plots](https://github.com/ceo-s/snake_ai/blob/main/media/training_progress.png)
 
 6. Ноутбук (или .py файл)
-   GA - _[]()_
-   DQN - _[q_snake_keras.ipynb]()_, _[q_snake_keras_train.py]()_
+   - _[GA Notebookq_snake_keras_train.py](https://github.com/ceo-s/snake_ai/blob/main/gen_algo.ipynb)_
+   - _[DQN Notebook](https://github.com/ceo-s/snake_ai/blob/main/q_snake_keras.ipynb)_, _[DQN .py file](https://github.com/ceo-s/snake_ai/blob/main/q_snake_keras_train.py)_
 
 7. Выводы
    Бинарный вектор - самый слабый способ параметризаци из опробованных, но пока что DQN научилась работать только на нём.
