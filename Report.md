@@ -18,7 +18,7 @@
    ![plots](https://github.com/ceo-s/snake_ai/blob/main/media/training_progress.png)
 
 7. Ноутбук (или .py файл).
-   - _[GA Notebookq_snake_keras_train.py](https://github.com/ceo-s/snake_ai/blob/main/gen_algo.ipynb)_
+   - _[GA Notebook](https://github.com/ceo-s/snake_ai/blob/main/gen_algo.ipynb)_
    - _[DQN Notebook](https://github.com/ceo-s/snake_ai/blob/main/q_snake_keras.ipynb)_, _[DQN .py file](https://github.com/ceo-s/snake_ai/blob/main/q_snake_keras_train.py)_
 
 8. Выводы.
