@@ -17,6 +17,7 @@ cython = "^3.0.2"
 tensorflow = "2.14"
 deap = "^1.4.1"
 pygame = "^2.5.2"
+pyqt5 = "5.15.2"
 
 [build-system]
 requires = ["poetry-core"]

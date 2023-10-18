@@ -20,13 +20,10 @@ MAX_MEMORY = 100_000
 BATCH_SIZE = 1000
 LR = 1e-3
 GAMMA = 0.9
-GAME_FIELD_SIZE = 24
-STATE_VECTOR_SIZE = 11
+GAME_FIELD_SIZE = 14
+STATE_VECTOR_SIZE = GAME_FIELD_SIZE**2
 GAMES_EPSILON = int(sys.argv[1]) if len(sys.argv) >= 2 else 80
-GAMES_REWARD_NULLING = int(sys.argv[2]) if len(
-    sys.argv) >= 3 else 200  # what a stupid name
-WEIGHTS_DIRECTORY = "weights/value_based/q/binary"
-PLOT_DIRECTORY = "media"
+WEIGHTS_DIRECTORY = "value_based/q/img"
 
 
 class Trainer:
@@ -65,6 +62,9 @@ class Agent:
             "scores": [],
             "rewards": [],
         }
+
+    def __del__(self):
+        self.backup()
 
     def remember(self, state, action, reward, next_state, done):
         self.memory.append((state, action, reward, next_state, done))
@@ -106,25 +106,25 @@ class Agent:
         rax.plot(self.stats["rewards"])
         rax.set_title(f"Rewards")
         fig.suptitle(f"{self.n_games} games")
-        fig.savefig(f"{PLOT_DIRECTORY}/training_progress2.png")
+        plt.show()
 
     def backup(self):
-        self.model.save_weights(f"{WEIGHTS_DIRECTORY}/{self.n_games}.keras")
+        self.model.save_weights(
+            f"{WEIGHTS_DIRECTORY}/{self.n_games}.keras")
 
 
 model = Sequential([
     Input((STATE_VECTOR_SIZE, )),
     Flatten(),
     Dense(256, activation="relu"),
-    Dense(32, activation="relu"),
+    Dense(36, activation="relu"),
     Dense(3)
 ])
-model.load_weights(f"weights/value_based/q/binary_old/250.keras")
 
 trainer = Trainer(model, LR, GAMMA)
 agent = Agent(model, trainer)
 
-env = Game(GAME_FIELD_SIZE, mode=RenderMode.BINARY_VECTOR, verbose=True)
+env = Game(GAME_FIELD_SIZE, mode=RenderMode.DISTANCED_VECTOR, verbose=True)
 
 
 def start_epoch(agent: Agent):
@@ -132,7 +132,7 @@ def start_epoch(agent: Agent):
     done = False
     old_state, info = env.reset()
     total_reward = 0
-
+    print(old_state)
     while not done:
         steps_without_apple += 1
         action = agent.generate_action(old_state)
@@ -141,16 +141,14 @@ def start_epoch(agent: Agent):
         if reward == 10:
             steps_without_apple = 0
 
-        elif agent.n_games > GAMES_REWARD_NULLING and abs(reward) == 0.01:
-            reward = 0
-
-        if reward == -10:
-            reward = -25
+        # elif reward == 0.01:
+            # reward = -0.01
 
         if steps_without_apple > GAME_FIELD_SIZE**2:
             reward = -10
             break
 
+        print(reward)
         agent.train_short_memory(old_state, action, reward, new_state, done)
         agent.remember(old_state, action, reward, new_state, done)
         old_state = new_state
@@ -160,20 +158,19 @@ def start_epoch(agent: Agent):
     return env.score - 3, total_reward
 
 
-def train(agent: Agent, epochs: int, backup_frequency: int = 100):
+def train(agent: Agent, epochs: int, backup_frequency: int = 100, verbose: bool = True):
 
     for i in range(epochs):
-        print(f"Epoch {i + 1}")
         score, reward = start_epoch(agent)
         agent.n_games += 1
         agent.stats["scores"].append(score)
         agent.stats["rewards"].append(reward)
         agent.train_long_memory()
+        agent.plot_statistics()
 
         if (i + 1) % backup_frequency == 0:
             agent.backup()
-            agent.plot_statistics()
 
 
 if __name__ == "__main__":
-    train(agent, 201, 50)
+    train(agent, 1, 50)

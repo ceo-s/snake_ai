@@ -51,6 +51,7 @@ class RenderMode(Enum):
     GRAYSCALE_IMAGE_SHRINKED = 2
     BINARY_VECTOR = 3
     DISTANCED_VECTOR = 4
+    DISTANCED_VECTOR2 = 5
 
 
 class Setup:
@@ -208,6 +209,72 @@ class NumpyDriver:
 
         return np.concatenate((direction_ohe, distance_to_walls, distance_to_apple, body_part_near)).astype("int8")
 
+    def generate_distanced_array2(self, surface: Surface, direction: int, head_coords: tuple[int, int], apple_coords: tuple[int, int], snake_dead: bool):
+        """
+        Returns vector, reprsenting values of game state
+        [
+            distances_to_danger: [left, straight, right]
+            distances_to_walls: [left, up, righ, down]
+            distances_to_apple: [x, y]
+            direction_ohe: [left, up, righ, down]
+            body_part_near: [up_left, up, up_right, left, righ, down_left, down, down_right]
+        ]
+        """
+
+        head_x, head_y = map(int, head_coords)
+        apple_x, apple_y = map(int, apple_coords)
+        field_size = self.__game().setup.FIELD_SIZE
+
+        if snake_dead:
+            # hardcoded solution to show that game is over
+            return np.array([*[0]*3,
+                             *[0]*4,
+                             *[field_size]*2,
+                             *[0]*4,
+                             *[1]*8
+                             ])
+
+        direction_mapping = {
+            1: 1,
+            -1: 3,
+            2: 0,
+            -2: 2,
+        }
+
+        direction, reverse_direction = direction_mapping[direction], direction_mapping[-direction]
+        direction_ohe = self.OHE_4X4[direction]
+
+        distance_to_walls = np.array(
+            [head_x, head_y, field_size - 1 - head_x, field_size - 1 - head_y])
+
+        distance_to_apple = np.array((apple_x - head_x, apple_y - head_y))
+
+        frame = self.surface_to_numpy(surface)[::self.__game(
+        ).setup.BLOCK_SIZE, ::self.__game().setup.BLOCK_SIZE, 1]
+
+        pad_color = Color.SNAKE_COLOR.value[1]
+
+        frame = np.pad(frame, 1, mode="constant",
+                       constant_values=pad_color)
+        frame_slice = frame[head_y: head_y + 3, head_x: head_x + 3].flatten()
+        frame_slice = np.delete(frame_slice, 4)
+
+        body_part_near = np.array(
+            frame_slice == pad_color, dtype="int8")
+
+        danger_col = frame[:, head_x+1]
+        danger_row = frame[head_y+1]
+        danger_up = np.where(danger_col[:head_y+1][::-1] == pad_color)[0][0]
+        danger_down = np.where(
+            danger_col[:head_y+1:-1][::-1] == pad_color)[0][0]
+        danger_left = np.where(danger_row[:head_x+1][::-1] == pad_color)[0][0]
+        danger_right = np.where(
+            danger_row[:head_x+1:-1][::-1] == pad_color)[0][0]
+        danger = np.array([danger_left, danger_up, danger_right, danger_down])
+        danger = np.roll(danger, -reverse_direction, 0)[1:]
+
+        return np.concatenate((danger, distance_to_walls, distance_to_apple, direction_ohe, body_part_near)).astype("int8")
+
 
 class Game:
 
@@ -294,6 +361,10 @@ class Game:
 
             case RenderMode.DISTANCED_VECTOR:
                 state = self.driver.generate_distanced_array(
+                    self.surface, self.snake.direction.value, self.snake.head.coords.xy, self.fruit.block.coords.xy, self.snake.is_dead)
+
+            case RenderMode.DISTANCED_VECTOR2:
+                state = self.driver.generate_distanced_array2(
                     self.surface, self.snake.direction.value, self.snake.head.coords.xy, self.fruit.block.coords.xy, self.snake.is_dead)
 
         return state
