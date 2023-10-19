@@ -18,7 +18,7 @@ gc.collect()
 
 MAX_MEMORY = 100_000
 BATCH_SIZE = 1000
-LR = 1e-3
+LR = 1e-4
 GAMMA = 0.9
 GAME_FIELD_SIZE = 24
 STATE_VECTOR_SIZE = 11
@@ -119,7 +119,7 @@ model = Sequential([
     Dense(32, activation="relu"),
     Dense(3)
 ])
-model.load_weights(f"weights/value_based/q/binary_old/250.keras")
+model.load_weights(f"weights/value_based/q/binary/200_bk.keras")
 
 trainer = Trainer(model, LR, GAMMA)
 agent = Agent(model, trainer)
@@ -143,9 +143,6 @@ def start_epoch(agent: Agent):
 
         elif agent.n_games > GAMES_REWARD_NULLING and abs(reward) == 0.01:
             reward = 0
-
-        if reward == -10:
-            reward = -25
 
         if steps_without_apple > GAME_FIELD_SIZE**2:
             reward = -10
